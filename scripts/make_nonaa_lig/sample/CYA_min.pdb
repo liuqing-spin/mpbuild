@@ -1,0 +1,51 @@
+TITLE     Structure1 - minimized
+REMARK   4      COMPLIES WITH FORMAT V. 3.0, 1-DEC-2006
+REMARK 888
+REMARK 888 WRITTEN BY MAESTRO (A PRODUCT OF SCHRODINGER, LLC)
+ATOM      1  CH3 ACE A   1      -1.896  -2.142   2.467  1.00  0.00           C  
+ATOM      2  C   ACE A   1      -1.734  -0.998   1.472  1.00  0.00           C  
+ATOM      3  O   ACE A   1      -2.687  -0.258   1.232  1.00  0.00           O  
+ATOM      4 HH31 ACE A   1      -0.968  -2.699   2.596  1.00  0.00           H  
+ATOM      5 HH32 ACE A   1      -2.199  -1.752   3.439  1.00  0.00           H  
+ATOM      6 HH33 ACE A   1      -2.665  -2.833   2.121  1.00  0.00           H  
+ATOM      7  N   CYA A   2      -0.528  -0.862   0.899  1.00  0.00           N  
+ATOM      8  CA  CYA A   2      -0.178   0.161  -0.087  1.00  0.00           C  
+ATOM      9  C   CYA A   2       1.053  -0.306  -0.885  1.00  0.00           C  
+ATOM     10  O   CYA A   2       1.876  -1.058  -0.361  1.00  0.00           O  
+ATOM     11  CB  CYA A   2       0.049   1.550   0.567  1.00  0.00           C  
+ATOM     12  SG  CYA A   2      -0.215   2.918  -0.607  1.00  0.00           S  
+ATOM     13  CZ2 EHN A   2      -0.358   4.329   0.526  1.00  0.00           C  
+ATOM     14  CZ1 EHN A   2       0.944   4.725   1.233  1.00  0.00           C  
+ATOM     15  H   CYA A   2       0.215  -1.508   1.128  1.00  0.00           H  
+ATOM     16  HA  CYA A   2      -1.014   0.226  -0.787  1.00  0.00           H  
+ATOM     17  HB2 CYA A   2      -0.653   1.700   1.389  1.00  0.00           H  
+ATOM     18  HB3 CYA A   2       1.045   1.630   1.004  1.00  0.00           H  
+ATOM     19  HZ5 EHN A   2      -0.735   5.177  -0.046  1.00  0.00           H  
+ATOM     20  HZ4 EHN A   2      -1.124   4.100   1.268  1.00  0.00           H  
+ATOM     21  HZ3 EHN A   2       0.792   5.596   1.869  1.00  0.00           H  
+ATOM     22  HZ1 EHN A   2       1.317   3.917   1.863  1.00  0.00           H  
+ATOM     23  HZ2 EHN A   2       1.723   4.973   0.511  1.00  0.00           H  
+ATOM     24  N   NMA A   3       1.158   0.168  -2.135  1.00  0.00           N  
+ATOM     25  CA  NMA A   3       2.268  -0.149  -3.020  1.00  0.00           C  
+ATOM     26  H   NMA A   3       0.446   0.790  -2.491  1.00  0.00           H  
+ATOM     27  HA1 NMA A   3       2.288   0.552  -3.855  1.00  0.00           H  
+ATOM     28  HA2 NMA A   3       3.226  -0.081  -2.502  1.00  0.00           H  
+ATOM     29  HA3 NMA A   3       2.161  -1.157  -3.422  1.00  0.00           H  
+TER      30      NMA A   3
+CONECT    1    4    5    6
+CONECT   12   13
+CONECT   25   27   28   29
+CONECT    4    1
+CONECT    5    1
+CONECT    6    1
+CONECT   13   12   19   20   14
+CONECT   27   25
+CONECT   28   25
+CONECT   29   25
+CONECT   19   13
+CONECT   20   13
+CONECT   14   13   21   22   23
+CONECT   21   14
+CONECT   22   14
+CONECT   23   14
+END   

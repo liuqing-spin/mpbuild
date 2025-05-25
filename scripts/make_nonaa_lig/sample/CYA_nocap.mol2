@@ -1,0 +1,46 @@
+@<TRIPOS>MOLECULE
+Structure1 - minimized
+17   16    1
+PROTEIN
+USER_CHARGES
+
+
+@<TRIPOS>DICT
+PROTEIN PROTEIN
+@<TRIPOS>ATOM
+      1 N          -0.5282   -0.8624    0.8987 N.am      1 CYA2       -0.4222 BACKBONE|DICT|DIRECT
+      2 CA         -0.1777    0.1613   -0.0868 C.3       1 CYA2        0.0793 BACKBONE|DICT|DIRECT
+      3 C           1.0530   -0.3058   -0.8853 C.2       1 CYA2        0.4983 BACKBONE|DICT|DIRECT
+      4 O           1.8760   -1.0583   -0.3606 O.2       1 CYA2       -0.5225 BACKBONE|DICT|DIRECT
+      5 CB          0.0486    1.5503    0.5667 C.3       1 CYA2       -0.0908 DICT
+      6 SG         -0.2146    2.9184   -0.6075 S.3       1 CYA2       -0.2735 DICT
+      7 H           0.2147   -1.5077    1.1280 H         1 CYA2        0.3040 DICT
+      8 HA         -1.0139    0.2257   -0.7870 H         1 CYA2        0.0860 DICT
+      9 HB2        -0.6529    1.7003    1.3886 H         1 CYA2        0.0750 DICT
+     10 HB3         1.0452    1.6296    1.0043 H         1 CYA2        0.0750 DICT
+     11 CZ2        -0.3584    4.3292    0.5262 C.3       1 CYA2       -0.0270 DICT
+     12 HZ5        -0.7350    5.1774   -0.0462 H         1 CYA2        0.0580 DICT
+     13 HZ4        -1.1240    4.1002    1.2682 H         1 CYA2        0.0580 DICT
+     14 CZ1         0.9438    4.7246    1.2326 C.3       1 CYA2       -0.1569 DICT
+     15 HZ3         0.7917    5.5965    1.8693 H         1 CYA2        0.0734 DICT
+     16 HZ1         1.3166    3.9175    1.8631 H         1 CYA2        0.0734 DICT
+     17 HZ2         1.7227    4.9729    0.5108 H         1 CYA2        0.0734 DICT
+@<TRIPOS>BOND
+     1    1    2 1    BACKBONE|DICT
+     2    1    7 1    DICT
+     3    2    3 1    BACKBONE|DICT
+     4    2    5 1    DICT
+     5    2    8 1    DICT
+     6    3    4 2    BACKBONE|DICT
+     7    5    6 1    DICT
+     8    5    9 1    DICT
+     9    5   10 1    DICT
+    10    6   11 1    DICT
+    11   11   12 1    DICT
+    12   11   13 1    DICT
+    13   11   14 1    DICT
+    14   14   15 1    DICT
+    15   14   16 1    DICT
+    16   14   17 1    DICT
+@<TRIPOS>SUBSTRUCTURE
+     1 CYA2        2 RESIDUE           1 A     CYA     1 ROOT    
