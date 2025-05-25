@@ -1,0 +1,778 @@
+
+	
+	@cid_list = ();
+	@lig_list = ();
+	@pep_list = ();
+	$wt_inh = undef;
+	for ($argv_i = 0; $argv_i < @ARGV ; $argv_i++){
+		if ($ARGV[$argv_i] eq "-h"){
+			print "		-ci	the list of chain IDs.
+	-lg	the list of ligand pdbs.
+	-lp	the list of peptide pdbs.
+	-wt	the water inhole signal, 1 or 0.
+       	";
+		die "	-h	print above information\n";
+		}
+		if ($ARGV[$argv_i] eq "-ci"){
+			for ($argv_i2 = $argv_i+1; $argv_i2 < @ARGV; $argv_i2++){
+				if ($ARGV[$argv_i2] =~ "^-"){
+					last;
+				}
+				else{
+					push @cid_list, $ARGV[$argv_i2];
+				}
+			}
+		}
+		if ($ARGV[$argv_i] eq "-lg"){
+			for ($argv_i2 = $argv_i+1; $argv_i2 < @ARGV; $argv_i2++){
+				if ($ARGV[$argv_i2] =~ "^-"){
+					last;
+				}
+				else{
+					push @lig_list, $ARGV[$argv_i2];
+				}
+			}
+		}
+		if ($ARGV[$argv_i] eq "-lp"){
+			for ($argv_i2 = $argv_i+1; $argv_i2 < @ARGV; $argv_i2++){
+				if ($ARGV[$argv_i2] =~ "^-"){
+					last;
+				}
+				else{
+					push @pep_list, $ARGV[$argv_i2];
+				}
+			}
+		}
+		if ($ARGV[$argv_i] eq "-wt"){
+			for ($argv_i2 = $argv_i+1; $argv_i2 < @ARGV; $argv_i2++){
+				if ($ARGV[$argv_i2] =~ "^-"){
+					last;
+				}
+				else{
+					$wt_inh = $ARGV[$argv_i2];
+				}
+			}
+		}
+	}
+	
+	@lig_pep_pdb_list = (@lig_list, @pep_list);
+
+	sub near_int{
+		$num1 = shift;
+		if ($num1 >= 0){
+			$num2 = int($num1);
+			$num3 = $num1 - $num2;
+			if ($num3 >= 0.5){
+				$near_int_num = $num2+1;
+			}
+			else{
+				$near_int_num = $num2;
+			}
+		}
+		else{
+			$num2 = int($num1);
+			$num3 = $num2 - $num1;
+			if ($num3 >= 0.5){
+				$near_int_num = $num2-1;
+			}
+			else{
+				$near_int_num = $num2;
+			}
+		}
+		return $near_int_num;
+	}
+
+
+	$dfr = 0;
+	@ss_a = ();
+	@ss_b = ();
+	@chain_ID_list = ();
+	open OUTPUT, ">ssbond_list_in_bilayer_system.txt" or die "can not create!\n";
+	for ($chain_i = 0; $chain_i < @cid_list ; $chain_i++){
+		$input_file = "./chain_$cid_list[$chain_i]/ssbond_filter_model_$cid_list[$chain_i].txt";
+		open INPUT, "$input_file" or die "can not open!\n";
+		while(chomp($line=<INPUT>)){
+			@items = split /\s+/, $line;
+			if ($items[4]){
+				$index_A = $items[4] + $dfr;
+				$index_B = $items[7] + $dfr;
+				print OUTPUT "$cid_list[$chain_i]\t$index_A\t$index_B\n";
+				print "$cid_list[$chain_i]\t$index_A\t$index_B\n";
+				push @ss_a, $index_A;
+				push @ss_b, $index_B;
+				push @chain_ID_list, $cid_list[$chain_i];
+			}
+		}
+		close INPUT;
+
+		$input_file = "./chain_$cid_list[$chain_i]/chain_$cid_list[$chain_i]_itv.txt";
+		open INPUT1, "$input_file" or die "can not open!\n";
+		while(chomp($line=<INPUT1>)){
+			@items = split /\s+/, $line;
+			$seq_len = $items[1];
+		}
+		$dfr += $seq_len;
+		close INPUT1;
+	}
+
+	
+
+	open INPUT, "bilayer_complex_prep_hs.pdb" or die "can not open!\n";
+	@biy_lines = ();
+        while(chomp($line=<INPUT>)){
+		#@gezis = split //, $line;
+		#$atom_mark = undef;
+		#for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+		#        $atom_mark .= "$gezis[$gezis_i]";
+		#}
+		#if (($atom_mark eq "ATOM  ") &&  ($atom_mark eq "HETATM")) {
+		push @biy_lines , $line;
+		#}
+	}
+	close INPUT;
+
+	open OUTPUT, ">protein_forbuild.pdb" or die "can not create!\n";
+	$atom_c = 0;
+	@resi_num_list = ();
+	@atom_name_list = ();
+	@atom_num_list = ();
+	@ss_label = ();
+	for ($id_i = 0; $id_i < @cid_list; $id_i++){
+		for ($line_i = 0; $line_i < @biy_lines; $line_i++){
+                        @gezis = split //, $biy_lines[$line_i];
+			#@items = split /\s+/, $biy_lines[$line_i];
+                        if (($gezis[12] eq "H")  && ($gezis[13] eq "H") ) {
+				next;
+			}
+			$seg_mark = undef;
+			for ($gezis_i = 71; $gezis_i <= 74 ; $gezis_i++){
+				$seg_mark .= $gezis[$gezis_i];
+			}
+			if ($seg_mark eq "MEMB"){
+				last;
+			}
+			if ($gezis[21] eq $cid_list[$id_i]){
+				push @ss_label, $gezis[21];
+				$resi_num = undef;
+				for ($gezis_i = 22; $gezis_i <= 25 ; $gezis_i++){
+					$resi_num .= $gezis[$gezis_i];
+				}
+				push @resi_num_list, $resi_num;
+
+				$atom_num = undef;
+				for ($gezis_i = 6; $gezis_i <= 10 ; $gezis_i++){
+					$atom_num .= $gezis[$gezis_i];
+				}
+				#push @atom_num_list, $atom_num;
+
+				$atom_name = undef;
+				for ($gezis_i = 12; $gezis_i <= 15 ; $gezis_i++){
+					$atom_name .= $gezis[$gezis_i];
+				}
+				push @atom_name_list, $atom_name;
+
+				$resi_name = undef;
+				for ($gezis_i = 17; $gezis_i <= 19 ; $gezis_i++){
+					$resi_name .= $gezis[$gezis_i];
+				}
+
+				$part_A = undef;
+				for ($gezis_i = 11; $gezis_i < @gezis ; $gezis_i++){
+					$part_A .= $gezis[$gezis_i];
+				}
+				$atom_c++;
+				printf OUTPUT "ATOM  %5d$part_A\n", $atom_c;
+				push @atom_num_list, $atom_c;
+
+			}
+		}
+		print OUTPUT "TER\n";
+	}
+
+	for ($ss_i = 0; $ss_i < @ss_a; $ss_i++){
+		@ss_pair = ();
+		$mark_1 = 0;
+		$mark_2 = 0;
+		for ($ret_i = 0; $ret_i < @resi_num_list; $ret_i++){
+			if (($ss_a[$ss_i] == $resi_num_list[$ret_i]) && ($atom_name_list[$ret_i] eq " SG ") && ($chain_ID_list[$ss_i] eq $ss_label[$ret_i]) ){
+				push @ss_pair, $atom_num_list[$ret_i];
+				$mark_1 = 1;
+			}
+			if (($ss_b[$ss_i] == $resi_num_list[$ret_i]) && ($atom_name_list[$ret_i] eq " SG ") && ($chain_ID_list[$ss_i] eq $ss_label[$ret_i]) ){
+				push @ss_pair, $atom_num_list[$ret_i];
+				$mark_2 = 1;
+			}
+		}
+		if (($mark_1 == 1) && ($mark_2 == 1) ){
+			print "s-s bond match!\n";
+			printf OUTPUT "CONECT%5d%5d\n", $ss_pair[0],$ss_pair[1];
+		}
+		else{
+			print "NO s-s bond match!\n";
+		}
+		
+	}
+
+	close OUTPUT;
+
+	open OUTPUT, ">nonprotein_forbuild.pdb" or die "can not create!\n";
+	$protein_mark = 1;
+	for ($line_i = 0; $line_i < @biy_lines; $line_i++){
+                @gezis = split //, $biy_lines[$line_i];
+		$seg_mark = undef;
+		for ($gezis_i = 71; $gezis_i <= 74 ; $gezis_i++){
+			$seg_mark .= $gezis[$gezis_i];
+		}
+		if ($seg_mark eq "MEMB"){
+			$protein_mark = 0;
+		}
+		if ($protein_mark == 0){
+			print OUTPUT "$biy_lines[$line_i]\n";
+		}
+	}
+	close OUTPUT;
+
+	@lig_pep_align_a_list = ();
+	open INPUT, "./4lig_pep_list.txt" or die "can not open!\n";
+	while(chomp($line=<INPUT>)){
+		push @lig_pep_align_a_list, $line;
+	}
+	close INPUT;
+
+	@lig_pep_id_list = ();
+	if (@lig_pep_pdb_list){
+		for ($lig_i = 0; $lig_i < @lig_pep_align_a_list; $lig_i++){
+			open INPUT, "$lig_pep_align_a_list[$lig_i]" or die "can not open!\n";
+			while(chomp($line=<INPUT>)){
+                                @gezis = split //, $line;
+                                $atom_mark = undef;
+                                for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+                                        $atom_mark .= "$gezis[$gezis_i]";
+                                }
+                                if (($atom_mark eq "ATOM  ") || ($atom_mark eq "HETATM") ) {
+		 	       		push @lig_pep_id_list, $gezis[21];
+		 	       		last;
+				}
+			}
+			close INPUT;
+		}
+	}
+	
+	print "@lig_pep_id_list\n";
+
+	open OUTPUT1, ">15align_lig_pep.pml" or die "can not create!\n";
+	for ($id_i = 0; $id_i < @lig_pep_id_list; $id_i++){
+		open OUTPUT, ">lig_pep_$lig_pep_id_list[$id_i].pdb" or die "can not create!\n";
+		for ($line_i = 0; $line_i < @biy_lines; $line_i++){
+                        @gezis = split //, $biy_lines[$line_i];
+			$seg_mark = undef;
+			for ($gezis_i = 71; $gezis_i <= 74 ; $gezis_i++){
+				$seg_mark .= $gezis[$gezis_i];
+			}
+			if ($seg_mark eq "MEMB"){
+				last;
+			}
+			if ($gezis[21] eq $lig_pep_id_list[$id_i]){
+				print OUTPUT "$biy_lines[$line_i]\n";
+			}
+		}
+		print OUTPUT "TER\n";
+		close OUTPUT;
+		@lig_pep_name = split /\./, $lig_pep_pdb_list[$id_i];
+		print OUTPUT1 "set retain_order, 1\n";
+		print OUTPUT1 "load lig_pep_$lig_pep_id_list[$id_i].pdb\n";
+		print OUTPUT1 "load $lig_pep_pdb_list[$id_i]\n";
+		print OUTPUT1 "align $lig_pep_name[0], lig_pep_$lig_pep_id_list[$id_i]\n";
+		print OUTPUT1 "save aligned_$lig_pep_name[0].pdb, $lig_pep_name[0]\n";
+	}
+	print OUTPUT1 "quit\n";
+	close OUTPUT1;
+
+	system("pymol -qc 15align_lig_pep.pml");
+
+
+	for ($lig_i = 0; $lig_i < @lig_pep_pdb_list; $lig_i++){
+
+		open INPUT, "$lig_pep_pdb_list[$lig_i]" or die "can not open!\n";
+		@resi_num_list = ();
+		@resi_name_list = ();
+		@atom_num_list = ();
+		@atom_name_list = ();
+		@cnc_a_list = ();
+		@cnc_b_list = ();
+       		while(chomp($line=<INPUT>)){
+                        @gezis = split //, $line;
+                        $atom_mark = undef;
+                        for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+                        	$atom_mark .= "$gezis[$gezis_i]";
+			}
+			if (($atom_mark eq "ATOM  ") ||  ($atom_mark eq "HETATM")) {
+				$resi_num = undef;
+				for ($gezis_i = 22; $gezis_i <= 25 ; $gezis_i++){
+					$resi_num .= $gezis[$gezis_i];
+				}
+				push @resi_num_list, $resi_num;
+                        
+				$atom_num = undef;
+				for ($gezis_i = 6; $gezis_i <= 10 ; $gezis_i++){
+					$atom_num .= $gezis[$gezis_i];
+				}
+				push @atom_num_list, $atom_num;
+                        
+				$atom_name = undef;
+				for ($gezis_i = 12; $gezis_i <= 15 ; $gezis_i++){
+					$atom_name .= $gezis[$gezis_i];
+				}
+				push @atom_name_list, $atom_name;
+                        
+				$resi_name = undef;
+				for ($gezis_i = 17; $gezis_i <= 19 ; $gezis_i++){
+					$resi_name .= $gezis[$gezis_i];
+				}
+				push @resi_name_list, $resi_name;
+			}
+			if ($atom_mark eq "CONECT") {
+				$cnc_a = undef;
+				for ($gezis_i = 6; $gezis_i <= 10; $gezis_i++){
+					$cnc_a .= "$gezis[$gezis_i]";
+				}
+				push @cnc_a_list, $cnc_a;
+				$cnc_b = undef;
+				for ($gezis_i = 11; $gezis_i <= 15; $gezis_i++){
+					$cnc_b .= "$gezis[$gezis_i]";
+				}
+				push @cnc_b_list, $cnc_b;
+			}
+                }
+		close INPUT;
+
+		@resi_num_cnc_a_list = ();
+		@resi_name_cnc_a_list = ();
+		@atom_name_cnc_a_list = ();
+		@resi_num_cnc_b_list = ();
+		@resi_name_cnc_b_list = ();
+		@atom_name_cnc_b_list = ();
+		for ($cnc_i = 0; $cnc_i < @cnc_a_list; $cnc_i++){
+			for ($atom_i = 0; $atom_i < @atom_num_list; $atom_i++){
+				if ($cnc_a_list[$cnc_i] == $atom_num_list[$atom_i]){
+					push @resi_num_cnc_a_list, $resi_num_list[$atom_i];
+					push @resi_name_cnc_a_list, $resi_name_list[$atom_i];
+					push @atom_name_cnc_a_list, $atom_name_list[$atom_i];
+				}
+				if ($cnc_b_list[$cnc_i] == $atom_num_list[$atom_i]){
+					push @resi_num_cnc_b_list, $resi_num_list[$atom_i];
+					push @resi_name_cnc_b_list, $resi_name_list[$atom_i];
+					push @atom_name_cnc_b_list, $atom_name_list[$atom_i];
+				}
+			}
+		}
+
+
+
+		open INPUT, "aligned_$lig_pep_pdb_list[$lig_i]" or die "can not open!\n";
+		open OUTPUT, ">aligned_ss_$lig_pep_pdb_list[$lig_i]" or die "can not open!\n";
+		@resi_num_list = ();
+		@resi_name_list = ();
+		@atom_num_list = ();
+		@atom_name_list = ();
+       		while(chomp($line=<INPUT>)){
+                        @gezis = split //, $line;
+                        $atom_mark = undef;
+                        for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+                        	$atom_mark .= "$gezis[$gezis_i]";
+			}
+			if (($atom_mark eq "ATOM  ") ||  ($atom_mark eq "HETATM")) {
+				$resi_num = undef;
+				for ($gezis_i = 22; $gezis_i <= 25 ; $gezis_i++){
+					$resi_num .= $gezis[$gezis_i];
+				}
+				push @resi_num_list, $resi_num;
+                        
+				$atom_num = undef;
+				for ($gezis_i = 6; $gezis_i <= 10 ; $gezis_i++){
+					$atom_num .= $gezis[$gezis_i];
+				}
+				push @atom_num_list, $atom_num;
+                        
+				$atom_name = undef;
+				for ($gezis_i = 12; $gezis_i <= 15 ; $gezis_i++){
+					$atom_name .= $gezis[$gezis_i];
+				}
+				push @atom_name_list, $atom_name;
+                        
+				$resi_name = undef;
+				for ($gezis_i = 17; $gezis_i <= 19 ; $gezis_i++){
+					$resi_name .= $gezis[$gezis_i];
+				}
+				push @resi_name_list, $resi_name;
+				print OUTPUT "$line\n";
+			}
+                }
+		close INPUT;
+		print OUTPUT "TER\n";
+
+		@cnb_a = ();
+		@cnb_b = ();
+		for ($cnc_i = 0; $cnc_i < @resi_num_cnc_a_list; $cnc_i++){
+			$match_ss_mark = 0;
+			for ($atom_i = 0; $atom_i < @atom_num_list; $atom_i++){
+				if (($resi_num_cnc_a_list[$cnc_i] == $resi_num_list[$atom_i]) &&  ($resi_name_cnc_a_list[$cnc_i] eq $resi_name_list[$atom_i])  &&  ($atom_name_cnc_a_list[$cnc_i] eq $atom_name_list[$atom_i]) ){
+					$match_ss_mark = 1;
+					push @cnb_a, $atom_num_list[$atom_i];
+					last;
+				}
+			}
+			if ($match_ss_mark == 0){
+				die "lig or pep structure error!\n";
+			}
+		}
+		for ($cnc_i = 0; $cnc_i < @resi_num_cnc_b_list; $cnc_i++){
+			$match_ss_mark = 0;
+			for ($atom_i = 0; $atom_i < @atom_num_list; $atom_i++){
+				if (($resi_num_cnc_b_list[$cnc_i] == $resi_num_list[$atom_i]) &&  ($resi_name_cnc_b_list[$cnc_i] eq $resi_name_list[$atom_i])  &&  ($atom_name_cnc_b_list[$cnc_i] eq $atom_name_list[$atom_i]) ){
+					$match_ss_mark = 1;
+					push @cnb_b, $atom_num_list[$atom_i];
+					last;
+				}
+			}
+			if ($match_ss_mark == 0){
+				die "lig or pep structure error!\n";
+			}
+		}
+
+		for ($cnc_i = 0; $cnc_i < @cnb_b; $cnc_i++){
+			printf OUTPUT "CONECT%5d%5d\n", $cnb_a[$cnc_i],  $cnb_b[$cnc_i];
+		}
+
+		close OUTPUT;
+
+	}
+
+
+	#@ssbond_list_w = @ssbond_list;
+	#open INPUT, "bilayer_complex_prep_hs.pdb" or die "can not open!\n";
+	#open OUTPUT, ">bilayer_complex_prep_hs_edit.pdb" or die "can not create!\n";
+	#while(chomp($line=<INPUT>)){
+	#	@gezis = split //, $line;
+	#	$atom_mark = undef;
+	#	for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+	#		$atom_mark .= "$gezis[$gezis_i]";
+	#	}
+	#	$resi_name = undef;
+	#	for ($gezis_i = 17; $gezis_i <= 19; $gezis_i++){
+	#		$resi_name .= "$gezis[$gezis_i]";
+	#	}
+	#	$resi_num = undef;
+	#	for ($gezis_i = 22; $gezis_i <= 25; $gezis_i++){
+	#		$resi_num .= "$gezis[$gezis_i]";
+	#	}
+	#	$atom_name = undef;
+	#	for ($gezis_i = 12; $gezis_i <= 15; $gezis_i++){
+	#		$atom_name .= "$gezis[$gezis_i]";
+	#	}
+	#	if ($atom_mark eq "ATOM  "){
+	#		if (($resi_name eq "CYS") && ($resi_num == $ssbond_list_w[0])){
+	#			$part_A = undef;
+	#			for ($gezis_i = 0; $gezis_i <= 16; $gezis_i++){
+	#				$part_A .= "$gezis[$gezis_i]";
+	#			}
+	#			$part_B = undef;
+	#			for ($gezis_i = 20; $gezis_i < @gezis; $gezis_i++){
+	#				$part_B .= "$gezis[$gezis_i]";
+	#			}
+	#			printf OUTPUT "$part_A%3s$part_B\n", "CYX";
+	#			shift @ssbond_list_w;
+	#		}
+	#		elsif (($resi_name eq "HIE") && ($atom_name eq " HD1" )){
+	#			next;
+	#		}
+	#		elsif (($resi_name eq "ASP") && ($atom_name eq " HD2" )){
+	#			next;
+	#		}
+	#		elsif (($resi_name eq "GLU") && ($atom_name eq " HE2" )){
+	#			next;
+	#		}
+	#		elsif (($resi_name eq "GLH") && ($atom_name eq " HCA" )){
+	#			next;
+	#		}
+	#		elsif ($atom_name eq " HXT" ){
+	#			next;
+	#		}
+	#		else{
+	#			print OUTPUT "$line\n";
+	#		}
+	#	
+	#	}
+	#	else{
+	#		print OUTPUT "$line\n";
+	#	}
+	#}
+	#close INPUT;
+        #
+	#if (@ssbond_list_w){
+	#	print "ssbond match error! ignore\n";
+		#die;
+		#}
+
+	
+	open OUTPUT, ">box_size.txt" or die "can not create!\n";
+	open INPUT, "bilayer_complex_prep_hs.pdb" or die "can not create!\n";
+	$line_c = 0;
+	while(chomp($line=<INPUT>)){
+		@gezis = split //, $line;
+		$atom_mark = undef;
+		for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+			$atom_mark .= "$gezis[$gezis_i]";
+		}
+		if ($atom_mark eq "ATOM  "){
+			$line_c++;
+			$pos_x = undef;
+			for ($gezis_i = 30; $gezis_i <= 37; $gezis_i++){
+				$pos_x .= "$gezis[$gezis_i]";
+			}
+			
+			$pos_y = undef;
+			for ($gezis_i = 38; $gezis_i <= 45; $gezis_i++){
+				$pos_y .= "$gezis[$gezis_i]";
+			}
+			
+			$pos_z = undef;
+			for ($gezis_i = 46; $gezis_i <= 53; $gezis_i++){
+				$pos_z .= "$gezis[$gezis_i]";
+			}
+			if ($line_c == 1){
+				$up_x = $pos_x;
+				$down_x = $pos_x;
+				$up_y = $pos_y;
+				$down_y = $pos_y;
+				$up_z = $pos_z;
+				$down_z = $pos_z;
+			}
+			else{
+				if ($up_x < $pos_x){
+					$up_x = $pos_x;
+				}
+				if ($down_x > $pos_x){
+					$down_x = $pos_x;
+				}
+				if ($up_y < $pos_y){
+					$up_y = $pos_y;
+				}
+				if ($down_y > $pos_y){
+					$down_y = $pos_y;
+				}
+				if ($up_z < $pos_z){
+					$up_z = $pos_z;
+				}
+				if ($down_z > $pos_z){
+					$down_z = $pos_z;
+				}
+			}
+		}
+	
+	}
+	close INPUT;
+	$len_x = $up_x - $down_x;
+	$len_y = $up_y - $down_y;
+	$len_z = $up_z - $down_z;
+
+	$cen_x = ($up_x + $down_x)/2;
+	$cen_y = ($up_y + $down_y)/2;
+	$cen_z = ($up_z + $down_z)/2;
+
+	print OUTPUT "bilayer_complex_prep_hs\t$len_x($up_x - $down_x)\t$len_y($up_y - $down_y)\t$len_z($up_z - $down_z) center: $cen_x\t$cen_y\t$cen_z\n" ; 
+	close OUTPUT;
+
+
+	@nature_aa = ("ARG", "HIS", "LYS", "ASP", "GLU", "SER", "THR", "ASN", "GLN", "CYS", "GLY", "PRO", "ALA", "VAL", "ILE", "LEU", "MET", "PHE", "TYR", "TRP", "CYX", "HIE", "HID", "HIP", "GLH", "ASH" );
+	@nst_aa = ();
+	for ($lig_i = 0; $lig_i < @pep_list; $lig_i++){
+		open INPUT, "aligned_ss_$pep_list[$lig_i]" or die "can not open!\n";
+		while(chomp($line=<INPUT>)){
+			@gezis = split //, $line;
+			$atom_mark = undef;
+			for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+				$atom_mark .= "$gezis[$gezis_i]";
+			}
+			if ($atom_mark eq "ATOM  "){
+				$resi_name = undef;
+				for ($gezis_i = 17; $gezis_i <= 19; $gezis_i++){
+					$resi_name .= "$gezis[$gezis_i]";
+				}
+				$match_naa = 0;
+				for ($aa_i = 0; $aa_i < @nature_aa; $aa_i++){
+					if ($nature_aa[$aa_i] eq $resi_name){
+						$match_naa = 1;
+						last;
+					}
+				}
+				if ($match_naa == 0){
+					$match_nst = 0;
+					for ($aa_i = 0; $aa_i < @nst_aa; $aa_i++){
+						if ($nst_aa[$aa_i] eq $resi_name){
+							$match_nst = 1;
+							last;
+						}
+					}
+					if ($match_nst == 0){
+						push @nst_aa, $resi_name;
+					}
+					
+				}
+			}
+		}
+		close INPUT;
+	}
+
+	@lig_aa = ();
+	for ($lig_i = 0; $lig_i < @lig_list; $lig_i++){
+		open INPUT, "aligned_ss_$lig_list[$lig_i]" or die "can not open!\n";
+		while(chomp($line=<INPUT>)){
+			@gezis = split //, $line;
+			$atom_mark = undef;
+			for ($gezis_i = 0; $gezis_i <= 5; $gezis_i++){
+				$atom_mark .= "$gezis[$gezis_i]";
+			}
+			if ($atom_mark eq "ATOM  "){
+				$resi_name = undef;
+				for ($gezis_i = 17; $gezis_i <= 19; $gezis_i++){
+					$resi_name .= "$gezis[$gezis_i]";
+				}
+				$match_naa = 0;
+				for ($aa_i = 0; $aa_i < @nature_aa; $aa_i++){
+					if ($nature_aa[$aa_i] eq $resi_name){
+						$match_naa = 1;
+						last;
+					}
+				}
+				if ($match_naa == 0){
+					$match_nst = 0;
+					for ($aa_i = 0; $aa_i < @lig_aa; $aa_i++){
+						if ($lig_aa[$aa_i] eq $resi_name){
+							$match_nst = 1;
+							last;
+						}
+					}
+					if ($match_nst == 0){
+						push @lig_aa, $resi_name;
+					}
+					
+				}
+			}
+		}
+		close INPUT;
+	}
+
+
+
+
+
+	open OUTPUT, ">build_leap_temp.in" or die "can not create!\n";
+	print OUTPUT "source leaprc.gaff
+source leaprc.protein.ff19SB
+source leaprc.water.tip3p
+source leaprc.lipid21
+loadamberparams frcmod.ionsjc_tip3p\n";
+	for ($aa_i = 0; $aa_i < @nst_aa; $aa_i++){
+		print OUTPUT "loadamberprep ../databases/nonaa/$nst_aa[$aa_i].prepin\n";
+		print OUTPUT "loadamberparams ../databases/nonaa/$nst_aa[$aa_i]_ff14SB.frcmod\n";
+		print OUTPUT "loadoff ../databases/nonaa/$nst_aa[$aa_i].lib\n";
+	}
+	for ($aa_i = 0; $aa_i < @lig_aa; $aa_i++){
+		print OUTPUT "loadamberprep ../databases/nonaa/$lig_aa[$aa_i].prepin\n";
+		print OUTPUT "loadamberparams ../databases/nonaa/$lig_aa[$aa_i]_gaff.frcmod\n";
+		print OUTPUT "loadoff ../databases/nonaa/$lig_aa[$aa_i].lib\n";
+	}
+	print OUTPUT "prn = loadpdb protein_forbuild.pdb\n";
+	print OUTPUT "npn = loadpdb nonprotein_forbuild.pdb\n";
+	
+	for ($lig_i = 0; $lig_i < @lig_pep_pdb_list; $lig_i++){
+		$lig_name = "LG$lig_i";
+		print OUTPUT "LG$lig_i = loadpdb aligned_ss_$lig_pep_pdb_list[$lig_i]\n" ;
+	}
+
+	print OUTPUT "com = combine {prn ";
+	for ($lig_i = 0; $lig_i < @lig_pep_pdb_list; $lig_i++){
+		print OUTPUT "LG$lig_i ";
+	}
+	print OUTPUT "npn}\n";
+
+	#for ($ss_i = 0; $ss_i < @ssbond_list; $ss_i+=2){
+	#	print OUTPUT "bond com.$ssbond_list[$ss_i].SG  com.$ssbond_list[$ss_i+1].SG\n";
+	#}
+
+	print OUTPUT "charge com
+quit\n";
+
+	close OUTPUT;
+	system("tleap -s -f build_leap_temp.in > build_leap_temp.log");
+	
+	open INPUT, "build_leap_temp.log" or die "can not open!\n";
+	while(chomp($line=<INPUT>)){
+		#if ($line=~qw/^Total perturbed charge.*/){
+		if ($line=~"^Total perturbed charge.*"){
+			@items_charge = split /\s+/, $line;
+			$charge_n = $items_charge[3];
+		}
+	}
+	close INPUT;
+
+
+	open OUTPUT, ">build_leap.in" or die "can not create!\n";
+	print OUTPUT "source leaprc.gaff
+source leaprc.protein.ff19SB
+source leaprc.water.tip3p
+source leaprc.lipid21
+loadamberparams frcmod.ionsjc_tip3p\n";
+	for ($aa_i = 0; $aa_i < @nst_aa; $aa_i++){
+		print OUTPUT "loadamberprep ../databases/nonaa/$nst_aa[$aa_i].prepin\n";
+		print OUTPUT "loadamberparams ../databases/nonaa/$nst_aa[$aa_i]_ff14SB.frcmod\n";
+		print OUTPUT "loadoff ../databases/nonaa/$nst_aa[$aa_i].lib\n";
+	}
+	for ($aa_i = 0; $aa_i < @lig_aa; $aa_i++){
+		print OUTPUT "loadamberprep ../databases/nonaa/$lig_aa[$aa_i].prepin\n";
+		print OUTPUT "loadamberparams ../databases/nonaa/$lig_aa[$aa_i]_gaff.frcmod\n";
+		print OUTPUT "loadoff ../databases/nonaa/$lig_aa[$aa_i].lib\n";
+	}
+	print OUTPUT "prn = loadpdb protein_forbuild.pdb\n";
+	print OUTPUT "npn = loadpdb nonprotein_forbuild.pdb\n";
+	for ($lig_i = 0; $lig_i < @lig_pep_pdb_list; $lig_i++){
+		$lig_name = "LG$lig_i";
+		print OUTPUT "LG$lig_i = loadpdb aligned_ss_$lig_pep_pdb_list[$lig_i]\n" ;
+	}
+	if ($wt_inh){
+		print OUTPUT "wtn = loadpdb wats_inhole_del_2.pdb\n";
+		print OUTPUT "com = combine {prn ";
+		for ($lig_i = 0; $lig_i < @lig_pep_pdb_list; $lig_i++){
+			print OUTPUT "LG$lig_i ";
+		}
+		print OUTPUT "npn wtn}\n";
+	}
+	else{
+		print OUTPUT "com = combine {prn ";
+		for ($lig_i = 0; $lig_i < @lig_pep_pdb_list; $lig_i++){
+			print OUTPUT "LG$lig_i ";
+		}
+		print OUTPUT "npn}\n";
+	}
+
+
+
+	print OUTPUT "set com box {$len_x $len_y $len_z }\n";
+	if (&near_int($charge_n) < 0){
+		print OUTPUT "addIonsRand com Na+ 0\n";
+	}
+	if (&near_int($charge_n) > 0){
+		print OUTPUT "addIonsRand com Cl- 0\n";
+	}
+
+	print OUTPUT "saveAmberParm com system_start.prmtop system_start.inpcrd
+savepdb com system_start.pdb
+quit\n";
+
+	close OUTPUT;
+	system("tleap -s -f build_leap.in");
+	print  "#################################################\n";
+	print  "#                  By Liu Qing                  #\n";
+	print  "# University of Science and Technology of China #\n";
+	print  "#################################################\n";
