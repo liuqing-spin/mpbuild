@@ -175,7 +175,8 @@ bash build.sh -m_path ~/mp_build_v9 \
               -s_path /opt/schrodinger2023 \
               -p_com 9bi6.pdb \
               -p_tmm R \
-              -w_inh 1
+              -w_inh 1 \
+              -p_cid R
 
 Copy generated wats_inhole_del_2.pdb to working directory.
 ```
