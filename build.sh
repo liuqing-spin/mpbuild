@@ -61,7 +61,7 @@ cp $m_path/scripts/sys_build/1extr_seq.pl ./
 perl 1extr_seq.pl $p_com
 sleep 3s
 
-cp $m_path/tools/pdb2fasta ./
+cp $m_path/scripts/sys_build/pdb2fasta.pl  ./
 cp $m_path/tools/clustalw2 ./
 cp $m_path/databases/pdball.pir ./
 
@@ -73,9 +73,11 @@ EOF
 echo "chain IDs are $ids_inpdb"
 sleep 3s
 
-cp $m_path/scripts/sys_build/3add_template_pdball.pl ./
-perl 3add_template_pdball.pl $p_tpt
+cp $m_path/scripts/sys_build/3add_template_pdball_v2.pl ./
+perl 3add_template_pdball_v2.pl $p_tpt
 sleep 3s
+
+p_cid="$ids_inpdb"
 
 crd_dir=`pwd`
 for cin_id in ${ids_inpdb[@]};
@@ -84,17 +86,17 @@ do
 	chain_dir=$crd_dir"/chain_"$cin_id	
 	cd $chain_dir
 	pwd
-	cp $m_path/scripts/homo_build/1make_target_fasta_v3.pl ./
+	cp $m_path/scripts/homo_build/1make_target_fasta_v5.pl ./
 	cp ../$p_seq ./
-	perl 1make_target_fasta_v3.pl -ci $cin_id -sf $p_seq
+	perl 1make_target_fasta_v5.pl -ci $cin_id -sf $p_seq
 	sleep 3s
 
-	cp $m_path/scripts/homo_build/2re_nature_v3.pl ./
-	perl 2re_nature_v3.pl chain_"$cin_id"
+	cp $m_path/scripts/homo_build/2re_nature_v4.pl ./
+	perl 2re_nature_v4.pl chain_"$cin_id"
 	sleep 3s
 
-	cp $m_path/scripts/homo_build/3make_target_fasta_v3.pl ./
-	perl 3make_target_fasta_v3.pl -ci $cin_id -sf $p_seq
+	cp $m_path/scripts/homo_build/3make_target_fasta_v4.pl ./
+	perl 3make_target_fasta_v4.pl -ci $cin_id -sf $p_seq
 	sleep 3s
 
 	cp $m_path/scripts/homo_build/4fas2ali.pl ./
@@ -123,16 +125,16 @@ do
 	python3 7salign.py $input_for5
 	sleep 3s
 
-	cp $m_path/scripts/homo_build/8remake_mulali.pl ./
-	perl 8remake_mulali.pl $input_for5
+	cp $m_path/scripts/homo_build/8remake_mulali_v2.pl ./
+	perl 8remake_mulali_v2.pl $input_for5
 	sleep 3s
 
 	cp $m_path/scripts/homo_build/9align2d_mult.py ./
 	python3 9align2d_mult.py chain_"$cin_id"_fe
 	sleep 3s
 
-	cp $m_path/scripts/homo_build/10remake_mulali.pl ./
-	perl 10remake_mulali.pl $input_for5
+	cp $m_path/scripts/homo_build/10remake_mulali_v2.pl ./
+	perl 10remake_mulali_v2.pl $input_for5
 	sleep 3s
 
 	#declare -a template_id
@@ -145,24 +147,24 @@ do
 	#echo "input string of template_id is ${template_id[@]}"
 	#for example: template_id = 5dhh B 4ej4 A
 
-	cp $m_path/scripts/homo_build/11make_ssbond_info.pl ./
-	perl 11make_ssbond_info.pl ../$p_com $cin_id 
+	cp $m_path/scripts/homo_build/11make_ssbond_info_v2.pl ./
+	perl 11make_ssbond_info_v2.pl ../$p_com $cin_id 
 	sleep 3s
 
 	cp $m_path/scripts/homo_build/12model_mult.py ./
         python3 12model_mult.py chain_"$cin_id"_fe ssbond_filter_model_"$cin_id".txt 5	
 	sleep 3s
 
-	cp $m_path/scripts/homo_build/13check_model_index.pl ./
-	perl 13check_model_index.pl  chain_"$cin_id"
+	cp $m_path/scripts/homo_build/13check_model_index_v2.pl ./
+	perl 13check_model_index_v2.pl  chain_"$cin_id"
 	sleep 3s
 
 	cp $m_path/scripts/homo_build/14align_select_model.pl ./
 	perl 14align_select_model.pl ../$p_com  chain_"$cin_id"_fe 
 	sleep 3s
 
-	cp $m_path/scripts/homo_build/15graft_v3.pl ./
-	perl 15graft_v3.pl  chain_"$cin_id"  $s_path
+	cp $m_path/scripts/homo_build/15graft_v4.pl ./
+	perl 15graft_v4.pl  chain_"$cin_id"  $s_path
 	sleep 3s
 
 	cp $m_path/scripts/homo_build/16loop_refine.pl ./
@@ -174,8 +176,8 @@ done
 
 cd $crd_dir
 
-cp $m_path/scripts/sys_build/4align_to_opm.pl ./
-perl 4align_to_opm.pl -p $p_com -tm  $p_tmm  -ci $p_cid -lg $c_lig -lp  $c_pep
+cp $m_path/scripts/sys_build/4align_to_opm_v4.pl ./
+perl 4align_to_opm_v4.pl -p $p_com -tm  $p_tmm  -ci $p_cid -lg $c_lig -lp  $c_pep -mp $m_path
 sleep 3s
 
 cp $m_path/scripts/sys_build/5change_chain_label.pl ./
@@ -186,8 +188,8 @@ cp $m_path/scripts/sys_build/6renumber.pl ./
 perl 6renumber.pl $p_cid
 sleep 3s
 
-cp $m_path/scripts/sys_build/7add_ss_resave_v3.pl ./
-perl 7add_ss_resave_v3.pl complex_align_label_renumber $s_path $p_cid
+cp $m_path/scripts/sys_build/7add_ss_resave_v5.pl ./
+perl 7add_ss_resave_v5.pl complex_align_label_renumber $s_path $p_cid
 sleep 3s
 
 cp $m_path/scripts/sys_build/8hstate_option_amber.pl ./
@@ -221,8 +223,8 @@ sleep 3s
 #fi
 
 cp $m_path/tools/cSPCE_kh.xvv  ./
-cp $m_path/scripts/sys_build/10amber_water_probe_v2.pl ./
-perl 10amber_water_probe_v2.pl  $p_tmm $w_inh
+cp $m_path/scripts/sys_build/10amber_water_probe_v3.pl ./
+perl 10amber_water_probe_v3.pl  $p_tmm $w_inh
 sleep 3s
 
 cp $m_path/scripts/sys_build/11find_water_inhole_v2.pl ./
@@ -237,11 +239,9 @@ cp $m_path/scripts/sys_build/13wat_inhole_del_2.pl ./
 perl 13wat_inhole_del_2.pl  $w_inh
 sleep 3s
 
-cp $m_path/scripts/sys_build/14prepare_build_v3.pl ./
-perl 14prepare_build_v3.pl -ci $p_cid -wt $w_inh  -lg $c_lig -lp  $c_pep
+cp $m_path/scripts/sys_build/14prepare_build_v7.pl ./
+perl 14prepare_build_v7.pl -ci $p_cid -wt $w_inh  -lg $c_lig -lp  $c_pep  -p $p_com -at $m_path
 sleep 3s
 
 cp $m_path/scripts/sys_build/15prepare_run.pl ./
 perl 15prepare_run.pl 
-
-
