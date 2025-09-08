@@ -1,3 +1,5 @@
+Download the latest MPBuild release from: https://github.com/liuqing-spin/mp_build_v10
+
 # MPBuild/Mp_build Tool Documentation
 
 ## English Version
